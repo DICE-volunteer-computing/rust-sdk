@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 
+use mongodb::bson::doc;
 use rust_sdk::{
-    api::host::{create, get, update},
+    api::host::{create, get, list, update},
     model::host::{Configuration, CreateHostDTO, Status, UpdateHostDTO},
     utils::time::seconds,
 };
@@ -50,4 +51,12 @@ async fn test_crud_host() {
     assert!(updated_host.status.last_updated_at >= host.status.last_updated_at);
     assert_eq!(updated_host.status.state, Status::Idle);
     assert_eq!(updated_host.tags, HashMap::new());
+
+    // List hosts
+    let hosts = list(doc! { "_id": {
+        "$oid": host_id.clone()
+    }})
+    .await;
+
+    assert_eq!(hosts.len(), 1);
 }
