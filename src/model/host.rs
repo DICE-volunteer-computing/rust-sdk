@@ -17,18 +17,13 @@ pub struct Configuration {
     pub cores: u64,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct HostStatus {
-    pub state: Status,
-    pub last_updated_at: u64,
-}
-
 #[derive(Serialize, Debug, Deserialize)]
 pub struct Host {
     #[serde(rename = "_id")]
     pub id: ObjectId,
     pub user_id: ObjectId,
-    pub status: HostStatus,
+    pub status: Status,
+    pub last_updated_at: u64,
     pub configuration: Configuration,
     pub created_at: u64,
     pub tags: HashMap<String, String>,
@@ -43,5 +38,5 @@ pub struct CreateHostDTO {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UpdateHostDTO {
-    pub state: Status,
+    pub status: Status,
 }

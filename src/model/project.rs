@@ -10,11 +10,12 @@ pub struct Project {
     pub description: String,
     pub user_id: ObjectId,
     pub tags: HashMap<String, String>,
+    pub created_at: u64,
+    pub last_updated_at: u64,
 }
 
 #[derive(Serialize, Debug, Deserialize)]
 pub struct CreateProjectDTO {
     pub description: String,
-    pub user_id: String,
     pub tags: HashMap<String, String>,
 }

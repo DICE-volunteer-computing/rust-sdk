@@ -30,15 +30,15 @@ async fn test_crud_host() {
     assert_eq!(host.configuration.disk_bytes, 987654);
     assert_eq!(host.configuration.cores, 4);
     assert!(host.created_at > start_time);
-    assert!(host.status.last_updated_at > start_time);
-    assert_eq!(host.status.state, Status::Stale);
+    assert!(host.last_updated_at > start_time);
+    assert_eq!(host.status, Status::Stale);
     assert_eq!(host.tags, HashMap::new());
 
     // Update the host, validate its properties
     update(
         host_id.clone(),
         UpdateHostDTO {
-            state: Status::Idle,
+            status: Status::Idle,
         },
     )
     .await;
@@ -48,8 +48,8 @@ async fn test_crud_host() {
     assert_eq!(updated_host.configuration.disk_bytes, 987654);
     assert_eq!(updated_host.configuration.cores, 4);
     assert!(updated_host.created_at > start_time);
-    assert!(updated_host.status.last_updated_at >= host.status.last_updated_at);
-    assert_eq!(updated_host.status.state, Status::Idle);
+    assert!(updated_host.last_updated_at >= host.last_updated_at);
+    assert_eq!(updated_host.status, Status::Idle);
     assert_eq!(updated_host.tags, HashMap::new());
 
     // List hosts

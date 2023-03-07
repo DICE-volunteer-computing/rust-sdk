@@ -1,5 +1,4 @@
 pub mod artifact;
-pub mod document;
 pub mod entity;
 pub mod event;
 pub mod host;

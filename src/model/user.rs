@@ -36,6 +36,8 @@ pub struct User {
     pub credit_consumer_status: CreditConsumerStatus,
     pub credit_producer_status: CreditProducerStatus,
     pub sponsorship_tier: SponsorshipTier,
+    pub created_at: u64,
+    pub last_updated_at: u64,
 }
 
 #[derive(Serialize, Debug, Deserialize)]

@@ -13,7 +13,7 @@ pub async fn create(input: CreateHostDTO) -> String {
 
     match res {
         Ok(response) => serde_json::from_str::<Value>(&response.text().await.unwrap()).unwrap()
-            ["$oid"]
+            ["insertedId"]["$oid"]
             .to_string()
             .replace("\"", ""),
         Err(_) => panic!("could not create host"),
@@ -28,7 +28,7 @@ pub async fn get(id: String) -> Host {
         .await;
 
     match res {
-        Ok(response) => serde_json::from_str(&response.text().await.unwrap()).unwrap(),
+        Ok(response) => response.json().await.unwrap(),
         Err(_) => panic!("could not get host"),
     }
 }
@@ -56,7 +56,7 @@ pub async fn list(input: Document) -> Vec<Host> {
         .await;
 
     match res {
-        Ok(response) => serde_json::from_str(&response.text().await.unwrap()).unwrap(),
+        Ok(response) => response.json().await.unwrap(),
         Err(_) => panic!("could not list hosts"),
     }
 }

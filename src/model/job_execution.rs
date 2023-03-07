@@ -9,7 +9,6 @@ pub enum Status {
     Execution,
     PendingArtifactUpload,
     Completed,
-    Cancelled,
     Error,
 }
 
@@ -30,7 +29,6 @@ pub struct JobExecution {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CreateJobExecutionDTO {
     pub job_id: String,
-    pub host_id: String,
     pub tags: HashMap<String, String>,
 }
 

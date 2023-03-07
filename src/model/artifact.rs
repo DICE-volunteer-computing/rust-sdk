@@ -27,6 +27,7 @@ pub struct Artifact {
     pub entity_id: ObjectId,
     pub entity_type: EntityType,
     pub created_at: u64,
+    pub last_updated_at: u64,
     pub tags: HashMap<String, String>,
 }
 
@@ -39,6 +40,17 @@ pub struct CreateArtifactDTO {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct CreateArtifactResponse {
+    pub uri: String,
+    pub id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct UpdateArtifactDTO {
     pub status: Status,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DownloadArtifactResponse {
+    pub uri: String,
 }
