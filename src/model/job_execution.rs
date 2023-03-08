@@ -33,6 +33,11 @@ pub struct CreateJobExecutionDTO {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct CreateJobExecutionResponse {
+    pub id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct UpdateJobExecutionDTO {
     pub status: Status,
 }
