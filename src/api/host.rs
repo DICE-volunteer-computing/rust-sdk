@@ -36,7 +36,7 @@ pub async fn get(id: String) -> Host {
 pub async fn update(id: String, input: UpdateHostDTO) {
     let client = reqwest::Client::new();
     let res = client
-        .post(format!("http://localhost:8080/host/update/{}", id))
+        .post(format!("http://localhost:8080/host/{}/update", id))
         .json(&input)
         .send()
         .await;

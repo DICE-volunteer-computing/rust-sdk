@@ -1,7 +1,7 @@
 use mongodb::bson::Document;
 
 use crate::model::job_execution::{
-    CreateJobExecutionDTO, CreateJobExecutionResponse, JobExecution,
+    CreateJobExecutionDTO, CreateJobExecutionResponse, JobExecution, UpdateJobExecutionDTO,
 };
 
 pub async fn create(input: CreateJobExecutionDTO) -> CreateJobExecutionResponse {
@@ -42,5 +42,19 @@ pub async fn list(input: Document) -> Vec<JobExecution> {
     match res {
         Ok(response) => response.json().await.unwrap(),
         Err(_) => panic!("could not list job executions"),
+    }
+}
+
+pub async fn update(id: String, input: UpdateJobExecutionDTO) {
+    let client = reqwest::Client::new();
+    let res = client
+        .post(format!("http://localhost:8080/job_execution/{}/update", id))
+        .json(&input)
+        .send()
+        .await;
+
+    match res {
+        Ok(_) => (),
+        Err(_) => panic!("could not update job execution"),
     }
 }

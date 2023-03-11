@@ -7,7 +7,7 @@ use rust_sdk::{
         artifact::{ArtifactType, CreateArtifactDTO, Status as ArtifactStatus, UpdateArtifactDTO},
         entity::EntityType,
         job::CreateJobDTO,
-        job_execution::{CreateJobExecutionDTO, Status},
+        job_execution::{CreateJobExecutionDTO, Status, UpdateJobExecutionDTO},
         project::CreateProjectDTO,
         runtime::{CreateRuntimeDTO, Status as RuntimeStatus, UpdateRuntimeDTO},
     },
@@ -79,6 +79,18 @@ async fn test_crud_job_execution() {
     assert_eq!(job_execution.job_id.to_string(), create_job_response.id);
     assert_eq!(job_execution.start_time, 0);
     assert_eq!(job_execution.end_time, 0);
+
+    // --- UPDATE ---
+    job_execution::update(
+        job_execution.id.clone().to_string(),
+        UpdateJobExecutionDTO {
+            status: Status::Execution,
+        },
+    )
+    .await;
+    let updated_job_execution = job_execution::get(job_execution.id.clone().to_string()).await;
+
+    assert_eq!(updated_job_execution.status, Status::Execution);
 
     // --- LIST ---
     let job_executions = job_execution::list(doc! { "_id": {
