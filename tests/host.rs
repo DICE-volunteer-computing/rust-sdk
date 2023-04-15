@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use mongodb::bson::doc;
 use rust_sdk::{
     api::host::{create, get, list, update},
+    config::config::{SdkConfig, Stage},
     model::host::{Configuration, CreateHostDTO, Status, UpdateHostDTO},
     utils::time::seconds,
 };
@@ -21,10 +22,22 @@ async fn test_crud_host() {
         },
         tags: HashMap::new(),
     };
-    let host_id = create(data).await;
+    let host_id = create(
+        SdkConfig {
+            stage: Stage::Integration,
+        },
+        data,
+    )
+    .await;
 
     // Get the host, validate its properties
-    let host = get(host_id.clone()).await;
+    let host = get(
+        SdkConfig {
+            stage: Stage::Integration,
+        },
+        host_id.as_str(),
+    )
+    .await;
 
     assert_eq!(host.configuration.mem_bytes, 65432);
     assert_eq!(host.configuration.disk_bytes, 987654);
@@ -36,13 +49,22 @@ async fn test_crud_host() {
 
     // Update the host, validate its properties
     update(
-        host_id.clone(),
+        SdkConfig {
+            stage: Stage::Integration,
+        },
+        host_id.as_str(),
         UpdateHostDTO {
             status: Status::Idle,
         },
     )
     .await;
-    let updated_host = get(host_id.clone()).await;
+    let updated_host = get(
+        SdkConfig {
+            stage: Stage::Integration,
+        },
+        host_id.as_str(),
+    )
+    .await;
 
     assert_eq!(updated_host.configuration.mem_bytes, 65432);
     assert_eq!(updated_host.configuration.disk_bytes, 987654);
@@ -53,9 +75,14 @@ async fn test_crud_host() {
     assert_eq!(updated_host.tags, HashMap::new());
 
     // List hosts
-    let hosts = list(doc! { "_id": {
-        "$oid": host_id.clone()
-    }})
+    let hosts = list(
+        SdkConfig {
+            stage: Stage::Integration,
+        },
+        doc! { "_id": {
+            "$oid": host_id.clone()
+        }},
+    )
     .await;
 
     assert_eq!(hosts.len(), 1);

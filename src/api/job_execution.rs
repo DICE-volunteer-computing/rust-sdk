@@ -1,13 +1,19 @@
 use mongodb::bson::Document;
 
-use crate::model::job_execution::{
-    CreateJobExecutionDTO, CreateJobExecutionResponse, JobExecution, UpdateJobExecutionDTO,
+use crate::{
+    config::config::SdkConfig,
+    model::job_execution::{
+        CreateJobExecutionDTO, CreateJobExecutionResponse, JobExecution, UpdateJobExecutionDTO,
+    },
+    utils::url::{create_path, get_path, list_path, update_path},
 };
 
-pub async fn create(input: CreateJobExecutionDTO) -> CreateJobExecutionResponse {
+pub const JOB_EXECUTION_PATH_ROOT: &str = "job_execution";
+
+pub async fn create(config: SdkConfig, input: CreateJobExecutionDTO) -> CreateJobExecutionResponse {
     let client = reqwest::Client::new();
     let res = client
-        .post("http://localhost:8080/job_execution")
+        .post(create_path(config, JOB_EXECUTION_PATH_ROOT))
         .json(&input)
         .send()
         .await;
@@ -18,10 +24,10 @@ pub async fn create(input: CreateJobExecutionDTO) -> CreateJobExecutionResponse 
     }
 }
 
-pub async fn get(id: String) -> JobExecution {
+pub async fn get(config: SdkConfig, id: &str) -> JobExecution {
     let client = reqwest::Client::new();
     let res = client
-        .get(format!("http://localhost:8080/job_execution/{}", id))
+        .get(get_path(config, JOB_EXECUTION_PATH_ROOT, id))
         .send()
         .await;
 
@@ -31,10 +37,10 @@ pub async fn get(id: String) -> JobExecution {
     }
 }
 
-pub async fn list(input: Document) -> Vec<JobExecution> {
+pub async fn list(config: SdkConfig, input: Document) -> Vec<JobExecution> {
     let client = reqwest::Client::new();
     let res = client
-        .post("http://localhost:8080/job_execution/list")
+        .post(list_path(config, JOB_EXECUTION_PATH_ROOT))
         .json(&input)
         .send()
         .await;
@@ -45,10 +51,10 @@ pub async fn list(input: Document) -> Vec<JobExecution> {
     }
 }
 
-pub async fn update(id: String, input: UpdateJobExecutionDTO) {
+pub async fn update(config: SdkConfig, id: &str, input: UpdateJobExecutionDTO) {
     let client = reqwest::Client::new();
     let res = client
-        .post(format!("http://localhost:8080/job_execution/{}/update", id))
+        .post(update_path(config, JOB_EXECUTION_PATH_ROOT, id))
         .json(&input)
         .send()
         .await;

@@ -1,11 +1,17 @@
 use mongodb::bson::Document;
 
-use crate::model::job::{CreateJobDTO, CreateJobResponse, Job};
+use crate::{
+    config::config::SdkConfig,
+    model::job::{CreateJobDTO, CreateJobResponse, Job},
+    utils::url::{create_path, get_path, list_path},
+};
 
-pub async fn create(input: CreateJobDTO) -> CreateJobResponse {
+pub const JOB_PATH_ROOT: &str = "job";
+
+pub async fn create(config: SdkConfig, input: CreateJobDTO) -> CreateJobResponse {
     let client = reqwest::Client::new();
     let res = client
-        .post("http://localhost:8080/job")
+        .post(create_path(config, JOB_PATH_ROOT))
         .json(&input)
         .send()
         .await;
@@ -16,12 +22,9 @@ pub async fn create(input: CreateJobDTO) -> CreateJobResponse {
     }
 }
 
-pub async fn get(id: String) -> Job {
+pub async fn get(config: SdkConfig, id: &str) -> Job {
     let client = reqwest::Client::new();
-    let res = client
-        .get(format!("http://localhost:8080/job/{}", id))
-        .send()
-        .await;
+    let res = client.get(get_path(config, JOB_PATH_ROOT, id)).send().await;
 
     match res {
         Ok(response) => response.json().await.unwrap(),
@@ -29,10 +32,10 @@ pub async fn get(id: String) -> Job {
     }
 }
 
-pub async fn list(input: Document) -> Vec<Job> {
+pub async fn list(config: SdkConfig, input: Document) -> Vec<Job> {
     let client = reqwest::Client::new();
     let res = client
-        .post("http://localhost:8080/job/list")
+        .post(list_path(config, JOB_PATH_ROOT))
         .json(&input)
         .send()
         .await;

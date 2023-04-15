@@ -1,12 +1,18 @@
 use mongodb::bson::Document;
 use serde_json::Value;
 
-use crate::model::host::{CreateHostDTO, Host, UpdateHostDTO};
+use crate::{
+    config::config::SdkConfig,
+    model::host::{CreateHostDTO, Host, UpdateHostDTO},
+    utils::url::{create_path, get_path, list_path, update_path},
+};
 
-pub async fn create(input: CreateHostDTO) -> String {
+pub const HOST_PATH_ROOTH: &str = "host";
+
+pub async fn create(config: SdkConfig, input: CreateHostDTO) -> String {
     let client = reqwest::Client::new();
     let res = client
-        .post("http://localhost:8080/host")
+        .post(create_path(config, HOST_PATH_ROOTH))
         .json(&input)
         .send()
         .await;
@@ -20,10 +26,10 @@ pub async fn create(input: CreateHostDTO) -> String {
     }
 }
 
-pub async fn get(id: String) -> Host {
+pub async fn get(config: SdkConfig, id: &str) -> Host {
     let client = reqwest::Client::new();
     let res = client
-        .get(format!("http://localhost:8080/host/{}", id))
+        .get(get_path(config, HOST_PATH_ROOTH, id))
         .send()
         .await;
 
@@ -33,10 +39,10 @@ pub async fn get(id: String) -> Host {
     }
 }
 
-pub async fn update(id: String, input: UpdateHostDTO) {
+pub async fn update(config: SdkConfig, id: &str, input: UpdateHostDTO) {
     let client = reqwest::Client::new();
     let res = client
-        .post(format!("http://localhost:8080/host/{}/update", id))
+        .post(update_path(config, HOST_PATH_ROOTH, id))
         .json(&input)
         .send()
         .await;
@@ -47,10 +53,10 @@ pub async fn update(id: String, input: UpdateHostDTO) {
     }
 }
 
-pub async fn list(input: Document) -> Vec<Host> {
+pub async fn list(config: SdkConfig, input: Document) -> Vec<Host> {
     let client = reqwest::Client::new();
     let res = client
-        .post("http://localhost:8080/host/list")
+        .post(list_path(config, HOST_PATH_ROOTH))
         .json(&input)
         .send()
         .await;

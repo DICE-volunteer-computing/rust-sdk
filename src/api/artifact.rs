@@ -1,14 +1,20 @@
 use mongodb::bson::Document;
 
-use crate::model::artifact::{
-    Artifact, CreateArtifactDTO, CreateArtifactResponse, DownloadArtifactResponse,
-    UpdateArtifactDTO,
+use crate::{
+    config::config::SdkConfig,
+    model::artifact::{
+        Artifact, CreateArtifactDTO, CreateArtifactResponse, DownloadArtifactResponse,
+        UpdateArtifactDTO,
+    },
+    utils::url::{create_path, download_path, get_path, list_path, update_path},
 };
 
-pub async fn create(input: CreateArtifactDTO) -> CreateArtifactResponse {
+pub const ARTIFACT_PATH_ROOT: &str = "artifact";
+
+pub async fn create(config: SdkConfig, input: CreateArtifactDTO) -> CreateArtifactResponse {
     let client = reqwest::Client::new();
     let res = client
-        .post("http://localhost:8080/artifact")
+        .post(create_path(config, ARTIFACT_PATH_ROOT))
         .json(&input)
         .send()
         .await;
@@ -19,10 +25,10 @@ pub async fn create(input: CreateArtifactDTO) -> CreateArtifactResponse {
     }
 }
 
-pub async fn get(id: String) -> Artifact {
+pub async fn get(config: SdkConfig, id: &str) -> Artifact {
     let client = reqwest::Client::new();
     let res = client
-        .get(format!("http://localhost:8080/artifact/{}", id))
+        .get(get_path(config, ARTIFACT_PATH_ROOT, id))
         .send()
         .await;
 
@@ -32,10 +38,10 @@ pub async fn get(id: String) -> Artifact {
     }
 }
 
-pub async fn update(id: String, input: UpdateArtifactDTO) {
+pub async fn update(config: SdkConfig, id: &str, input: UpdateArtifactDTO) {
     let client = reqwest::Client::new();
     let res = client
-        .post(format!("http://localhost:8080/artifact/{}/update", id))
+        .post(update_path(config, ARTIFACT_PATH_ROOT, id))
         .json(&input)
         .send()
         .await;
@@ -46,10 +52,10 @@ pub async fn update(id: String, input: UpdateArtifactDTO) {
     }
 }
 
-pub async fn list(input: Document) -> Vec<Artifact> {
+pub async fn list(config: SdkConfig, input: Document) -> Vec<Artifact> {
     let client = reqwest::Client::new();
     let res = client
-        .post("http://localhost:8080/artifact/list")
+        .post(list_path(config, ARTIFACT_PATH_ROOT))
         .json(&input)
         .send()
         .await;
@@ -60,10 +66,10 @@ pub async fn list(input: Document) -> Vec<Artifact> {
     }
 }
 
-pub async fn download(id: String) -> DownloadArtifactResponse {
+pub async fn download(config: SdkConfig, id: &str) -> DownloadArtifactResponse {
     let client = reqwest::Client::new();
     let res = client
-        .get(format!("http://localhost:8080/artifact/{}/download", id))
+        .get(download_path(config, ARTIFACT_PATH_ROOT, id))
         .send()
         .await;
 

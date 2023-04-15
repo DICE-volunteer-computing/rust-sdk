@@ -1,7 +1,12 @@
 use std::collections::HashMap;
 
 use mongodb::bson::doc;
-use rust_sdk::{api::project, model::project::CreateProjectDTO, utils::time::seconds};
+use rust_sdk::{
+    api::project,
+    config::config::{SdkConfig, Stage},
+    model::project::CreateProjectDTO,
+    utils::time::seconds,
+};
 
 #[tokio::test]
 async fn test_crud_project() {
@@ -13,10 +18,22 @@ async fn test_crud_project() {
         tags: HashMap::new(),
     };
 
-    let project_id = project::create(input).await;
+    let project_id = project::create(
+        SdkConfig {
+            stage: Stage::Integration,
+        },
+        input,
+    )
+    .await;
 
     // --- GET ---
-    let original_project = project::get(project_id.clone()).await;
+    let original_project = project::get(
+        SdkConfig {
+            stage: Stage::Integration,
+        },
+        project_id.as_str(),
+    )
+    .await;
 
     assert_eq!(original_project.description, format!("test description"));
     assert_eq!(original_project.tags, HashMap::new());
@@ -24,9 +41,14 @@ async fn test_crud_project() {
     assert!(original_project.last_updated_at > start_time);
 
     // --- LIST ---
-    let projects = project::list(doc! { "_id": {
-        "$oid": project_id
-    }})
+    let projects = project::list(
+        SdkConfig {
+            stage: Stage::Integration,
+        },
+        doc! { "_id": {
+            "$oid": project_id
+        }},
+    )
     .await;
 
     assert_eq!(projects.len(), 1);

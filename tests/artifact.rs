@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use mongodb::bson::doc;
 use rust_sdk::{
     api::{artifact, project},
+    config::config::{SdkConfig, Stage},
     model::{
         artifact::{ArtifactType, CreateArtifactDTO, Status, UpdateArtifactDTO},
         entity::EntityType,
@@ -16,10 +17,15 @@ async fn test_crud_artifact() {
     let start_time = seconds() - 1;
 
     // --- DEPENDENCIES ---
-    let project_id = project::create(CreateProjectDTO {
-        description: format!("test 1"),
-        tags: HashMap::new(),
-    })
+    let project_id = project::create(
+        SdkConfig {
+            stage: Stage::Integration,
+        },
+        CreateProjectDTO {
+            description: format!("test 1"),
+            tags: HashMap::new(),
+        },
+    )
     .await;
 
     // --- CREATE ---
@@ -29,10 +35,22 @@ async fn test_crud_artifact() {
         artifact_type: ArtifactType::Input,
         tags: HashMap::new(),
     };
-    let create_artifact_response = artifact::create(data).await;
+    let create_artifact_response = artifact::create(
+        SdkConfig {
+            stage: Stage::Integration,
+        },
+        data,
+    )
+    .await;
 
     // --- GET ---
-    let artifact = artifact::get(create_artifact_response.id.clone()).await;
+    let artifact = artifact::get(
+        SdkConfig {
+            stage: Stage::Integration,
+        },
+        create_artifact_response.id.as_str(),
+    )
+    .await;
 
     assert_eq!(artifact.entity_id.to_string(), project_id);
     assert!(artifact.created_at > start_time);
@@ -46,19 +64,43 @@ async fn test_crud_artifact() {
         status: Status::Active,
     };
 
-    artifact::update(create_artifact_response.id.clone(), update_data).await;
+    artifact::update(
+        SdkConfig {
+            stage: Stage::Integration,
+        },
+        create_artifact_response.id.as_str(),
+        update_data,
+    )
+    .await;
 
-    let updated_artifact = artifact::get(create_artifact_response.id.clone()).await;
+    let updated_artifact = artifact::get(
+        SdkConfig {
+            stage: Stage::Integration,
+        },
+        create_artifact_response.id.as_str(),
+    )
+    .await;
     assert_eq!(updated_artifact.status, Status::Active);
 
     // --- LIST ---
-    let artifacts = artifact::list(doc! { "_id": {
-        "$oid": create_artifact_response.id.clone()
-    }})
+    let artifacts = artifact::list(
+        SdkConfig {
+            stage: Stage::Integration,
+        },
+        doc! { "_id": {
+            "$oid": create_artifact_response.id.clone()
+        }},
+    )
     .await;
 
     assert_eq!(artifacts.len(), 1);
 
     // --- DOWNLOAD ---
-    artifact::download(create_artifact_response.id.clone()).await;
+    artifact::download(
+        SdkConfig {
+            stage: Stage::Integration,
+        },
+        create_artifact_response.id.as_str(),
+    )
+    .await;
 }

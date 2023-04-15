@@ -1,13 +1,19 @@
 use mongodb::bson::Document;
 
-use crate::model::runtime::{
-    CreateRuntimeDTO, CreateRuntimeResponse, DownloadRuntimeResponse, Runtime, UpdateRuntimeDTO,
+use crate::{
+    config::config::SdkConfig,
+    model::runtime::{
+        CreateRuntimeDTO, CreateRuntimeResponse, DownloadRuntimeResponse, Runtime, UpdateRuntimeDTO,
+    },
+    utils::url::{create_path, download_path, get_path, list_path, update_path},
 };
 
-pub async fn create(input: CreateRuntimeDTO) -> CreateRuntimeResponse {
+pub const RUNTIME_PATH_ROOT: &str = "runtime";
+
+pub async fn create(config: SdkConfig, input: CreateRuntimeDTO) -> CreateRuntimeResponse {
     let client = reqwest::Client::new();
     let res = client
-        .post("http://localhost:8080/runtime")
+        .post(create_path(config, RUNTIME_PATH_ROOT))
         .json(&input)
         .send()
         .await;
@@ -18,10 +24,10 @@ pub async fn create(input: CreateRuntimeDTO) -> CreateRuntimeResponse {
     }
 }
 
-pub async fn get(id: String) -> Runtime {
+pub async fn get(config: SdkConfig, id: &str) -> Runtime {
     let client = reqwest::Client::new();
     let res = client
-        .get(format!("http://localhost:8080/runtime/{}", id))
+        .get(get_path(config, RUNTIME_PATH_ROOT, id))
         .send()
         .await;
 
@@ -31,10 +37,10 @@ pub async fn get(id: String) -> Runtime {
     }
 }
 
-pub async fn update(id: String, input: UpdateRuntimeDTO) {
+pub async fn update(config: SdkConfig, id: &str, input: UpdateRuntimeDTO) {
     let client = reqwest::Client::new();
     let res = client
-        .post(format!("http://localhost:8080/runtime/{}/update", id))
+        .post(update_path(config, RUNTIME_PATH_ROOT, id))
         .json(&input)
         .send()
         .await;
@@ -45,10 +51,10 @@ pub async fn update(id: String, input: UpdateRuntimeDTO) {
     }
 }
 
-pub async fn list(input: Document) -> Vec<Runtime> {
+pub async fn list(config: SdkConfig, input: Document) -> Vec<Runtime> {
     let client = reqwest::Client::new();
     let res = client
-        .post("http://localhost:8080/runtime/list")
+        .post(list_path(config, RUNTIME_PATH_ROOT))
         .json(&input)
         .send()
         .await;
@@ -59,10 +65,10 @@ pub async fn list(input: Document) -> Vec<Runtime> {
     }
 }
 
-pub async fn download(id: String) -> DownloadRuntimeResponse {
+pub async fn download(config: SdkConfig, id: &str) -> DownloadRuntimeResponse {
     let client = reqwest::Client::new();
     let res = client
-        .get(format!("http://localhost:8080/runtime/{}/download", id))
+        .get(download_path(config, RUNTIME_PATH_ROOT, id))
         .send()
         .await;
 

@@ -1,12 +1,18 @@
 use mongodb::bson::Document;
 use serde_json::Value;
 
-use crate::model::project::{CreateProjectDTO, Project};
+use crate::{
+    config::config::SdkConfig,
+    model::project::{CreateProjectDTO, Project},
+    utils::url::{create_path, get_path, list_path},
+};
 
-pub async fn create(input: CreateProjectDTO) -> String {
+pub const PROJECT_PATH_ROOT: &str = "project";
+
+pub async fn create(config: SdkConfig, input: CreateProjectDTO) -> String {
     let client = reqwest::Client::new();
     let res = client
-        .post("http://localhost:8080/project")
+        .post(create_path(config, PROJECT_PATH_ROOT))
         .json(&input)
         .send()
         .await;
@@ -20,10 +26,10 @@ pub async fn create(input: CreateProjectDTO) -> String {
     }
 }
 
-pub async fn get(id: String) -> Project {
+pub async fn get(config: SdkConfig, id: &str) -> Project {
     let client = reqwest::Client::new();
     let res = client
-        .get(format!("http://localhost:8080/project/{}", id))
+        .get(get_path(config, PROJECT_PATH_ROOT, id))
         .send()
         .await;
 
@@ -33,10 +39,10 @@ pub async fn get(id: String) -> Project {
     }
 }
 
-pub async fn list(input: Document) -> Vec<Project> {
+pub async fn list(config: SdkConfig, input: Document) -> Vec<Project> {
     let client = reqwest::Client::new();
     let res = client
-        .post("http://localhost:8080/project/list")
+        .post(list_path(config, PROJECT_PATH_ROOT))
         .json(&input)
         .send()
         .await;
