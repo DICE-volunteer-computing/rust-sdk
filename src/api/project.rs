@@ -1,15 +1,14 @@
-use mongodb::bson::Document;
-use serde_json::Value;
+use mongodb::bson::{oid::ObjectId, Document};
 
 use crate::{
     config::config::SdkConfig,
-    model::project::{CreateProjectDTO, Project},
+    model::project::{CreateProjectDTO, CreateProjectResponse, Project},
     utils::url::{create_path, get_path, list_path},
 };
 
 pub const PROJECT_PATH_ROOT: &str = "project";
 
-pub async fn create(config: SdkConfig, input: CreateProjectDTO) -> String {
+pub async fn create(config: SdkConfig, input: CreateProjectDTO) -> CreateProjectResponse {
     let client = reqwest::Client::new();
     let res = client
         .post(create_path(config, PROJECT_PATH_ROOT))
@@ -18,23 +17,23 @@ pub async fn create(config: SdkConfig, input: CreateProjectDTO) -> String {
         .await;
 
     match res {
-        Ok(response) => serde_json::from_str::<Value>(&response.text().await.unwrap()).unwrap()
-            ["insertedId"]["$oid"]
-            .to_string()
-            .replace("\"", ""),
+        Ok(response) => response
+            .json()
+            .await
+            .expect("could not parse CreateProjectResponse"),
         Err(_) => panic!("could not create project"),
     }
 }
 
-pub async fn get(config: SdkConfig, id: &str) -> Project {
+pub async fn get(config: SdkConfig, id: ObjectId) -> Project {
     let client = reqwest::Client::new();
     let res = client
-        .get(get_path(config, PROJECT_PATH_ROOT, id))
+        .get(get_path(config, PROJECT_PATH_ROOT, id.to_string().as_str()))
         .send()
         .await;
 
     match res {
-        Ok(response) => serde_json::from_str(&response.text().await.unwrap()).unwrap(),
+        Ok(response) => response.json().await.expect("could not parse Project"),
         Err(_) => panic!("could not get project"),
     }
 }
@@ -48,7 +47,7 @@ pub async fn list(config: SdkConfig, input: Document) -> Vec<Project> {
         .await;
 
     match res {
-        Ok(response) => serde_json::from_str(&response.text().await.unwrap()).unwrap(),
+        Ok(response) => response.json().await.expect("could not parse Vec<Project>"),
         Err(_) => panic!("could not list projects"),
     }
 }

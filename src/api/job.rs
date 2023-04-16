@@ -1,4 +1,4 @@
-use mongodb::bson::Document;
+use mongodb::bson::{oid::ObjectId, Document};
 
 use crate::{
     config::config::SdkConfig,
@@ -17,17 +17,23 @@ pub async fn create(config: SdkConfig, input: CreateJobDTO) -> CreateJobResponse
         .await;
 
     match res {
-        Ok(response) => response.json().await.unwrap(),
+        Ok(response) => response
+            .json()
+            .await
+            .expect("could not parse CreateJobResponse"),
         Err(_) => panic!("could not create job"),
     }
 }
 
-pub async fn get(config: SdkConfig, id: &str) -> Job {
+pub async fn get(config: SdkConfig, id: ObjectId) -> Job {
     let client = reqwest::Client::new();
-    let res = client.get(get_path(config, JOB_PATH_ROOT, id)).send().await;
+    let res = client
+        .get(get_path(config, JOB_PATH_ROOT, id.to_string().as_str()))
+        .send()
+        .await;
 
     match res {
-        Ok(response) => response.json().await.unwrap(),
+        Ok(response) => response.json().await.expect("could not parse Job"),
         Err(_) => panic!("could not get job"),
     }
 }
@@ -41,7 +47,7 @@ pub async fn list(config: SdkConfig, input: Document) -> Vec<Job> {
         .await;
 
     match res {
-        Ok(response) => response.json().await.unwrap(),
+        Ok(response) => response.json().await.expect("could not parse Vec<Job>"),
         Err(_) => panic!("could not list jobs"),
     }
 }

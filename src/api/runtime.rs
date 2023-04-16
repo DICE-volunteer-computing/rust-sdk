@@ -1,4 +1,4 @@
-use mongodb::bson::Document;
+use mongodb::bson::{oid::ObjectId, Document};
 
 use crate::{
     config::config::SdkConfig,
@@ -19,28 +19,35 @@ pub async fn create(config: SdkConfig, input: CreateRuntimeDTO) -> CreateRuntime
         .await;
 
     match res {
-        Ok(response) => response.json().await.unwrap(),
+        Ok(response) => response
+            .json()
+            .await
+            .expect("could not parse CreateRuntimeResponse"),
         Err(_) => panic!("could not create runtime"),
     }
 }
 
-pub async fn get(config: SdkConfig, id: &str) -> Runtime {
+pub async fn get(config: SdkConfig, id: ObjectId) -> Runtime {
     let client = reqwest::Client::new();
     let res = client
-        .get(get_path(config, RUNTIME_PATH_ROOT, id))
+        .get(get_path(config, RUNTIME_PATH_ROOT, id.to_string().as_str()))
         .send()
         .await;
 
     match res {
-        Ok(response) => response.json().await.unwrap(),
+        Ok(response) => response.json().await.expect("could not parse Runtime"),
         Err(_) => panic!("could not get runtime"),
     }
 }
 
-pub async fn update(config: SdkConfig, id: &str, input: UpdateRuntimeDTO) {
+pub async fn update(config: SdkConfig, id: ObjectId, input: UpdateRuntimeDTO) {
     let client = reqwest::Client::new();
     let res = client
-        .post(update_path(config, RUNTIME_PATH_ROOT, id))
+        .post(update_path(
+            config,
+            RUNTIME_PATH_ROOT,
+            id.to_string().as_str(),
+        ))
         .json(&input)
         .send()
         .await;
@@ -60,20 +67,27 @@ pub async fn list(config: SdkConfig, input: Document) -> Vec<Runtime> {
         .await;
 
     match res {
-        Ok(response) => response.json().await.unwrap(),
+        Ok(response) => response.json().await.expect("could not parse Vec<Runtime>"),
         Err(_) => panic!("could not list runtimes"),
     }
 }
 
-pub async fn download(config: SdkConfig, id: &str) -> DownloadRuntimeResponse {
+pub async fn download(config: SdkConfig, id: ObjectId) -> DownloadRuntimeResponse {
     let client = reqwest::Client::new();
     let res = client
-        .get(download_path(config, RUNTIME_PATH_ROOT, id))
+        .get(download_path(
+            config,
+            RUNTIME_PATH_ROOT,
+            id.to_string().as_str(),
+        ))
         .send()
         .await;
 
     match res {
-        Ok(response) => response.json().await.unwrap(),
+        Ok(response) => response
+            .json()
+            .await
+            .expect("could not parse DownloadRuntimeResponse"),
         Err(_) => panic!("could not get runtime"),
     }
 }

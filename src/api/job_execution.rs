@@ -1,4 +1,4 @@
-use mongodb::bson::Document;
+use mongodb::bson::{oid::ObjectId, Document};
 
 use crate::{
     config::config::SdkConfig,
@@ -19,20 +19,27 @@ pub async fn create(config: SdkConfig, input: CreateJobExecutionDTO) -> CreateJo
         .await;
 
     match res {
-        Ok(response) => response.json().await.unwrap(),
+        Ok(response) => response
+            .json()
+            .await
+            .expect("could not parse CreateJobExecutionResponse"),
         Err(_) => panic!("could not create job execution"),
     }
 }
 
-pub async fn get(config: SdkConfig, id: &str) -> JobExecution {
+pub async fn get(config: SdkConfig, id: ObjectId) -> JobExecution {
     let client = reqwest::Client::new();
     let res = client
-        .get(get_path(config, JOB_EXECUTION_PATH_ROOT, id))
+        .get(get_path(
+            config,
+            JOB_EXECUTION_PATH_ROOT,
+            id.to_string().as_str(),
+        ))
         .send()
         .await;
 
     match res {
-        Ok(response) => response.json().await.unwrap(),
+        Ok(response) => response.json().await.expect("could not parse JobExecution"),
         Err(_) => panic!("could not get job execution"),
     }
 }
@@ -46,15 +53,22 @@ pub async fn list(config: SdkConfig, input: Document) -> Vec<JobExecution> {
         .await;
 
     match res {
-        Ok(response) => response.json().await.unwrap(),
+        Ok(response) => response
+            .json()
+            .await
+            .expect("could not parse Vec<JobExecution>"),
         Err(_) => panic!("could not list job executions"),
     }
 }
 
-pub async fn update(config: SdkConfig, id: &str, input: UpdateJobExecutionDTO) {
+pub async fn update(config: SdkConfig, id: ObjectId, input: UpdateJobExecutionDTO) {
     let client = reqwest::Client::new();
     let res = client
-        .post(update_path(config, JOB_EXECUTION_PATH_ROOT, id))
+        .post(update_path(
+            config,
+            JOB_EXECUTION_PATH_ROOT,
+            id.to_string().as_str(),
+        ))
         .json(&input)
         .send()
         .await;

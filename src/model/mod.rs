@@ -1,6 +1,4 @@
 pub mod artifact;
-pub mod entity;
-pub mod event;
 pub mod host;
 pub mod job;
 pub mod job_execution;

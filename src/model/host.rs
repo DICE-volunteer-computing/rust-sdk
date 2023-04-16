@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Serialize, Debug, Deserialize, PartialEq)]
-pub enum Status {
+pub enum HostStatus {
     Stale,
     Idle,
     Busy,
@@ -12,31 +12,38 @@ pub enum Status {
 
 #[derive(Serialize, Debug, Deserialize)]
 pub struct Configuration {
-    pub mem_bytes: u64,
     pub disk_bytes: u64,
-    pub cores: u64,
+    pub mem_bytes: u64,
 }
 
 #[derive(Serialize, Debug, Deserialize)]
 pub struct Host {
-    #[serde(rename = "_id")]
-    pub id: ObjectId,
-    pub user_id: ObjectId,
-    pub status: Status,
-    pub last_updated_at: u64,
     pub configuration: Configuration,
     pub created_at: u64,
+    #[serde(rename = "_id")]
+    pub id: ObjectId,
+    pub last_updated_at: u64,
+    pub status: HostStatus,
     pub tags: HashMap<String, String>,
+    pub user_id: ObjectId,
 }
 
 #[derive(Serialize, Debug, Deserialize)]
 pub struct CreateHostDTO {
-    pub user_id: String,
     pub configuration: Configuration,
     pub tags: HashMap<String, String>,
+    pub user_id: ObjectId,
+}
+
+#[derive(Serialize, Debug, Deserialize)]
+pub struct CreateHostResponse {
+    pub id: ObjectId,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UpdateHostDTO {
-    pub status: Status,
+    pub status: Option<HostStatus>,
 }
+
+#[derive(Serialize, Debug, Deserialize)]
+pub struct UpdateHostResponse {}

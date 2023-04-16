@@ -4,34 +4,32 @@ use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub enum Status {
+pub enum JobStatus {
     Active,
-    Completed,
-    Cancelled,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Job {
+    pub created_at: u64,
     #[serde(rename = "_id")]
     pub id: ObjectId,
-    pub project_id: ObjectId,
-    pub status: Status,
     pub input_artifacts: Vec<ObjectId>,
-    pub runtime_id: ObjectId,
-    pub tags: HashMap<String, String>,
-    pub created_at: u64,
     pub last_updated_at: u64,
+    pub project_id: ObjectId,
+    pub runtime_id: ObjectId,
+    pub status: JobStatus,
+    pub tags: HashMap<String, String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CreateJobDTO {
-    pub input_artifact_ids: Vec<String>,
-    pub runtime_id: String,
-    pub project_id: String,
+    pub input_artifact_ids: Vec<ObjectId>,
+    pub project_id: ObjectId,
+    pub runtime_id: ObjectId,
     pub tags: HashMap<String, String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CreateJobResponse {
-    pub id: String,
+    pub id: ObjectId,
 }

@@ -1,16 +1,17 @@
 use std::collections::HashMap;
 
+mod common;
+use crate::common::TEST_SDK_CONFIG;
+
 use mongodb::bson::doc;
 use rust_sdk::{
     api::{artifact, job, job_execution, project, runtime},
-    config::config::{SdkConfig, Stage},
     model::{
-        artifact::{ArtifactType, CreateArtifactDTO, Status as ArtifactStatus, UpdateArtifactDTO},
-        entity::EntityType,
+        artifact::{ArtifactStatus, CreateArtifactDTO, UpdateArtifactDTO},
         job::CreateJobDTO,
-        job_execution::{CreateJobExecutionDTO, Status, UpdateJobExecutionDTO},
+        job_execution::{CreateJobExecutionDTO, JobExecutionStatus, UpdateJobExecutionDTO},
         project::CreateProjectDTO,
-        runtime::{CreateRuntimeDTO, Status as RuntimeStatus, UpdateRuntimeDTO},
+        runtime::{CreateRuntimeDTO, RuntimeExecutionType, RuntimeStatus, UpdateRuntimeDTO},
     },
     utils::time::seconds,
 };
@@ -21,69 +22,56 @@ async fn test_crud_job_execution() {
 
     // --- DEPENDENCIES ---
     let project_id = project::create(
-        SdkConfig {
-            stage: Stage::Integration,
-        },
+        TEST_SDK_CONFIG,
         CreateProjectDTO {
             description: format!("test 1"),
+            name: format!("test name 1"),
             tags: HashMap::new(),
         },
     )
-    .await;
+    .await
+    .id;
 
     let create_artifact_response = artifact::create(
-        SdkConfig {
-            stage: Stage::Integration,
-        },
+        TEST_SDK_CONFIG,
         CreateArtifactDTO {
-            entity_id: project_id.clone(),
-            entity_type: EntityType::Project,
-            artifact_type: ArtifactType::Input,
             tags: HashMap::new(),
         },
     )
     .await;
     artifact::update(
-        SdkConfig {
-            stage: Stage::Integration,
-        },
-        create_artifact_response.id.as_str(),
+        TEST_SDK_CONFIG,
+        create_artifact_response.id,
         UpdateArtifactDTO {
-            status: ArtifactStatus::Active,
+            status: Some(ArtifactStatus::Active),
         },
     )
     .await;
 
     let create_runtime_response = runtime::create(
-        SdkConfig {
-            stage: Stage::Integration,
-        },
+        TEST_SDK_CONFIG,
         CreateRuntimeDTO {
-            project_id: project_id.clone(),
-            name: format!("test"),
+            execution_type: RuntimeExecutionType::Wasmer,
+            project_id: project_id,
             tags: HashMap::new(),
         },
     )
     .await;
     runtime::update(
-        SdkConfig {
-            stage: Stage::Integration,
-        },
-        create_runtime_response.id.as_str(),
+        TEST_SDK_CONFIG,
+        create_runtime_response.id,
         UpdateRuntimeDTO {
-            status: RuntimeStatus::Active,
+            status: Some(RuntimeStatus::Active),
         },
     )
     .await;
 
     let create_job_response = job::create(
-        SdkConfig {
-            stage: Stage::Integration,
-        },
+        TEST_SDK_CONFIG,
         CreateJobDTO {
-            input_artifact_ids: vec![create_artifact_response.id.clone()],
-            runtime_id: create_runtime_response.id.clone(),
-            project_id: project_id.clone(),
+            input_artifact_ids: vec![create_artifact_response.id],
+            runtime_id: create_runtime_response.id,
+            project_id: project_id,
             tags: HashMap::new(),
         },
     )
@@ -91,62 +79,45 @@ async fn test_crud_job_execution() {
 
     // --- CREATE ---
     let create_job_execution_response = job_execution::create(
-        SdkConfig {
-            stage: Stage::Integration,
-        },
+        TEST_SDK_CONFIG,
         CreateJobExecutionDTO {
-            job_id: create_job_response.id.clone(),
+            job_id: create_job_response.id,
             tags: HashMap::new(),
         },
     )
     .await;
 
     // --- GET ---
-    let job_execution = job_execution::get(
-        SdkConfig {
-            stage: Stage::Integration,
-        },
-        create_job_execution_response.id.as_str(),
-    )
-    .await;
+    let job_execution = job_execution::get(TEST_SDK_CONFIG, create_job_execution_response.id).await;
 
     assert!(job_execution.created_at > start_time);
     assert!(job_execution.last_updated_at > start_time);
-    assert_eq!(job_execution.status, Status::PendingExecution);
+    assert_eq!(job_execution.status, JobExecutionStatus::PendingExecution);
     assert_eq!(job_execution.tags, HashMap::new());
-    assert_eq!(job_execution.job_id.to_string(), create_job_response.id);
+    assert_eq!(job_execution.job_id, create_job_response.id);
     assert_eq!(job_execution.start_time, 0);
     assert_eq!(job_execution.end_time, 0);
 
     // --- UPDATE ---
     job_execution::update(
-        SdkConfig {
-            stage: Stage::Integration,
-        },
-        job_execution.id.to_string().as_str(),
+        TEST_SDK_CONFIG,
+        job_execution.id,
         UpdateJobExecutionDTO {
-            status: Status::Execution,
+            output_artifacts: None,
+            status: Some(JobExecutionStatus::Execution),
         },
     )
     .await;
-    let updated_job_execution = job_execution::get(
-        SdkConfig {
-            stage: Stage::Integration,
-        },
-        job_execution.id.to_string().as_str(),
-    )
-    .await;
+    let updated_job_execution = job_execution::get(TEST_SDK_CONFIG, job_execution.id).await;
 
-    assert_eq!(updated_job_execution.status, Status::Execution);
+    assert_eq!(updated_job_execution.status, JobExecutionStatus::Execution);
 
     // --- LIST ---
     let job_executions = job_execution::list(
-        SdkConfig {
-            stage: Stage::Integration,
+        TEST_SDK_CONFIG,
+        doc! {
+            "_id": create_job_execution_response.id
         },
-        doc! { "_id": {
-            "$oid": create_job_execution_response.id.clone()
-        }},
     )
     .await;
 
