@@ -3,25 +3,22 @@ use std::collections::HashMap;
 use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
+use super::common::{PlatformArchitecture, PlatformExecutionType};
+
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub enum RuntimeStatus {
     CreatedPendingUpload,
     Active,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub enum RuntimeExecutionType {
-    Wasmer,
-    Docker,
-}
-
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Runtime {
     pub created_at: u64,
-    pub execution_type: RuntimeExecutionType,
     #[serde(rename = "_id")]
     pub id: ObjectId,
     pub last_updated_at: u64,
+    pub platform_architecture: PlatformArchitecture,
+    pub platform_execution_type: PlatformExecutionType,
     pub project_id: ObjectId,
     pub status: RuntimeStatus,
     pub tags: HashMap<String, String>,
@@ -29,7 +26,8 @@ pub struct Runtime {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CreateRuntimeDTO {
-    pub execution_type: RuntimeExecutionType,
+    pub platform_architecture: PlatformArchitecture,
+    pub platform_execution_type: PlatformExecutionType,
     pub project_id: ObjectId,
     pub tags: HashMap<String, String>,
 }

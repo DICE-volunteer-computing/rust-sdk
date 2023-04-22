@@ -1,3 +1,4 @@
+use super::common::{PlatformArchitecture, PlatformExecutionType};
 use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -13,7 +14,10 @@ pub enum HostStatus {
 #[derive(Serialize, Debug, Deserialize)]
 pub struct Configuration {
     pub disk_bytes: u64,
+    pub fp64_flops: Option<u64>,
     pub mem_bytes: u64,
+    pub platform_architecture_types: Vec<PlatformArchitecture>,
+    pub platform_execution_types: Vec<PlatformExecutionType>,
 }
 
 #[derive(Serialize, Debug, Deserialize)]

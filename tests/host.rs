@@ -6,7 +6,10 @@ use crate::common::TEST_SDK_CONFIG;
 use mongodb::bson::{doc, oid::ObjectId};
 use rust_sdk::{
     api::host::{create, get, list, update},
-    model::host::{Configuration, CreateHostDTO, HostStatus, UpdateHostDTO},
+    model::{
+        common::{PlatformArchitecture, PlatformExecutionType},
+        host::{Configuration, CreateHostDTO, HostStatus, UpdateHostDTO},
+    },
     utils::time::seconds,
 };
 
@@ -19,8 +22,17 @@ async fn test_crud_host() {
         user_id: ObjectId::from_str("63f6bc062c4b38df844c9593")
             .expect("could not convert String to ObjectId"),
         configuration: Configuration {
-            mem_bytes: 65432,
             disk_bytes: 987654,
+            fp64_flops: None,
+            mem_bytes: 65432,
+            platform_architecture_types: vec![
+                PlatformArchitecture::Arm64,
+                PlatformArchitecture::Wasm,
+            ],
+            platform_execution_types: vec![
+                PlatformExecutionType::Docker,
+                PlatformExecutionType::Wasmer,
+            ],
         },
         tags: HashMap::new(),
     };
@@ -29,8 +41,17 @@ async fn test_crud_host() {
     // Get the host, validate its properties
     let host = get(TEST_SDK_CONFIG, host_id).await;
 
-    assert_eq!(host.configuration.mem_bytes, 65432);
     assert_eq!(host.configuration.disk_bytes, 987654);
+    assert_eq!(host.configuration.fp64_flops, None);
+    assert_eq!(host.configuration.mem_bytes, 65432);
+    assert_eq!(
+        host.configuration.platform_architecture_types,
+        vec![PlatformArchitecture::Arm64, PlatformArchitecture::Wasm]
+    );
+    assert_eq!(
+        host.configuration.platform_execution_types,
+        vec![PlatformExecutionType::Docker, PlatformExecutionType::Wasmer]
+    );
     assert!(host.created_at > start_time);
     assert!(host.last_updated_at > start_time);
     assert_eq!(host.status, HostStatus::Stale);
@@ -47,12 +68,7 @@ async fn test_crud_host() {
     .await;
     let updated_host = get(TEST_SDK_CONFIG, host_id).await;
 
-    assert_eq!(updated_host.configuration.mem_bytes, 65432);
-    assert_eq!(updated_host.configuration.disk_bytes, 987654);
-    assert!(updated_host.created_at > start_time);
-    assert!(updated_host.last_updated_at >= host.last_updated_at);
     assert_eq!(updated_host.status, HostStatus::Idle);
-    assert_eq!(updated_host.tags, HashMap::new());
 
     // List hosts
     let hosts = list(

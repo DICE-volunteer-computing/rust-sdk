@@ -7,8 +7,9 @@ use rust_sdk::{
     api::{project, runtime},
     config::config::{SdkConfig, Stage},
     model::{
+        common::{PlatformArchitecture, PlatformExecutionType},
         project::CreateProjectDTO,
-        runtime::{CreateRuntimeDTO, RuntimeExecutionType, RuntimeStatus, UpdateRuntimeDTO},
+        runtime::{CreateRuntimeDTO, RuntimeStatus, UpdateRuntimeDTO},
     },
     utils::time::seconds,
 };
@@ -33,7 +34,8 @@ async fn test_crud_runtime() {
 
     // --- CREATE ---
     let data = CreateRuntimeDTO {
-        execution_type: RuntimeExecutionType::Wasmer,
+        platform_architecture: PlatformArchitecture::Wasm,
+        platform_execution_type: PlatformExecutionType::Wasmer,
         project_id: project_id,
         tags: HashMap::new(),
     };
@@ -51,7 +53,11 @@ async fn test_crud_runtime() {
     assert_eq!(runtime.project_id, project_id);
     assert!(runtime.created_at > start_time);
     assert!(runtime.last_updated_at > start_time);
-    assert_eq!(runtime.execution_type, RuntimeExecutionType::Wasmer);
+    assert_eq!(runtime.platform_architecture, PlatformArchitecture::Wasm);
+    assert_eq!(
+        runtime.platform_execution_type,
+        PlatformExecutionType::Wasmer
+    );
     assert_eq!(runtime.status, RuntimeStatus::CreatedPendingUpload);
     assert_eq!(runtime.tags, HashMap::new());
 

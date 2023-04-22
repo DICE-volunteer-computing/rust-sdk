@@ -8,10 +8,11 @@ use rust_sdk::{
     api::{artifact, job, job_execution, project, runtime},
     model::{
         artifact::{ArtifactStatus, CreateArtifactDTO, UpdateArtifactDTO},
+        common::{PlatformArchitecture, PlatformExecutionType},
         job::CreateJobDTO,
         job_execution::{CreateJobExecutionDTO, JobExecutionStatus, UpdateJobExecutionDTO},
         project::CreateProjectDTO,
-        runtime::{CreateRuntimeDTO, RuntimeExecutionType, RuntimeStatus, UpdateRuntimeDTO},
+        runtime::{CreateRuntimeDTO, RuntimeStatus, UpdateRuntimeDTO},
     },
     utils::time::seconds,
 };
@@ -51,7 +52,8 @@ async fn test_crud_job_execution() {
     let create_runtime_response = runtime::create(
         TEST_SDK_CONFIG,
         CreateRuntimeDTO {
-            execution_type: RuntimeExecutionType::Wasmer,
+            platform_architecture: PlatformArchitecture::Wasm,
+            platform_execution_type: PlatformExecutionType::Wasmer,
             project_id: project_id,
             tags: HashMap::new(),
         },
@@ -92,7 +94,10 @@ async fn test_crud_job_execution() {
 
     assert!(job_execution.created_at > start_time);
     assert!(job_execution.last_updated_at > start_time);
-    assert_eq!(job_execution.status, JobExecutionStatus::PendingExecution);
+    assert_eq!(
+        job_execution.status,
+        JobExecutionStatus::PendingHostAllocation
+    );
     assert_eq!(job_execution.tags, HashMap::new());
     assert_eq!(job_execution.job_id, create_job_response.id);
     assert_eq!(job_execution.start_time, 0);
@@ -103,6 +108,7 @@ async fn test_crud_job_execution() {
         TEST_SDK_CONFIG,
         job_execution.id,
         UpdateJobExecutionDTO {
+            host_id: None,
             output_artifacts: None,
             status: Some(JobExecutionStatus::Execution),
         },

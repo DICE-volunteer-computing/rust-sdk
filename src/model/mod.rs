@@ -1,4 +1,5 @@
 pub mod artifact;
+pub mod common;
 pub mod host;
 pub mod job;
 pub mod job_execution;

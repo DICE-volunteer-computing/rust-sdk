@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub enum JobExecutionStatus {
+    PendingHostAllocation,
     PendingExecution,
     Execution,
     PendingArtifactUpload,
@@ -16,7 +17,7 @@ pub enum JobExecutionStatus {
 pub struct JobExecution {
     pub created_at: u64,
     pub end_time: u64,
-    pub host_id: ObjectId,
+    pub host_id: Option<ObjectId>,
     #[serde(rename = "_id")]
     pub id: ObjectId,
     pub job_id: ObjectId,
@@ -40,6 +41,7 @@ pub struct CreateJobExecutionResponse {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UpdateJobExecutionDTO {
+    pub host_id: Option<ObjectId>,
     pub output_artifacts: Option<Vec<ObjectId>>,
     pub status: Option<JobExecutionStatus>,
 }

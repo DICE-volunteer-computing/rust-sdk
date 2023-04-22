@@ -7,9 +7,10 @@ use rust_sdk::{
     api::{artifact, job, project, runtime},
     model::{
         artifact::{ArtifactStatus, CreateArtifactDTO, UpdateArtifactDTO},
+        common::{PlatformArchitecture, PlatformExecutionType},
         job::{CreateJobDTO, JobStatus},
         project::CreateProjectDTO,
-        runtime::{CreateRuntimeDTO, RuntimeExecutionType, RuntimeStatus, UpdateRuntimeDTO},
+        runtime::{CreateRuntimeDTO, RuntimeStatus, UpdateRuntimeDTO},
     },
     utils::time::seconds,
 };
@@ -51,7 +52,8 @@ async fn test_crud_job() {
     let create_runtime_response = runtime::create(
         TEST_SDK_CONFIG,
         CreateRuntimeDTO {
-            execution_type: RuntimeExecutionType::Wasmer,
+            platform_architecture: PlatformArchitecture::Wasm,
+            platform_execution_type: PlatformExecutionType::Wasmer,
             project_id: project_id,
             tags: HashMap::new(),
         },
