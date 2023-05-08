@@ -3,6 +3,8 @@ use std::collections::HashMap;
 use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
+use super::common::Permissions;
+
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub enum JobStatus {
     Active,
@@ -15,6 +17,7 @@ pub struct Job {
     pub id: ObjectId,
     pub input_artifacts: Vec<ObjectId>,
     pub last_updated_at: u64,
+    pub permissions: Permissions,
     pub project_id: ObjectId,
     pub runtime_id: ObjectId,
     pub status: JobStatus,

@@ -3,18 +3,22 @@ use mongodb::bson::{oid::ObjectId, Document};
 use crate::{
     config::config::SdkConfig,
     model::job::{CreateJobDTO, CreateJobResponse, Job},
-    utils::url::{create_path, get_path, list_path},
+    utils::{
+        auth::{add_auth, get_api_token},
+        url::{create_path, get_path, list_path},
+    },
 };
 
 pub const JOB_PATH_ROOT: &str = "job";
 
 pub async fn create(config: SdkConfig, input: CreateJobDTO) -> CreateJobResponse {
     let client = reqwest::Client::new();
-    let res = client
-        .post(create_path(config, JOB_PATH_ROOT))
-        .json(&input)
-        .send()
-        .await;
+    let res = add_auth(
+        client.post(create_path(config, JOB_PATH_ROOT)).json(&input),
+        &get_api_token(),
+    )
+    .send()
+    .await;
 
     match res {
         Ok(response) => response
@@ -27,10 +31,12 @@ pub async fn create(config: SdkConfig, input: CreateJobDTO) -> CreateJobResponse
 
 pub async fn get(config: SdkConfig, id: ObjectId) -> Job {
     let client = reqwest::Client::new();
-    let res = client
-        .get(get_path(config, JOB_PATH_ROOT, id.to_string().as_str()))
-        .send()
-        .await;
+    let res = add_auth(
+        client.get(get_path(config, JOB_PATH_ROOT, id.to_string().as_str())),
+        &get_api_token(),
+    )
+    .send()
+    .await;
 
     match res {
         Ok(response) => response.json().await.expect("could not parse Job"),
@@ -40,11 +46,12 @@ pub async fn get(config: SdkConfig, id: ObjectId) -> Job {
 
 pub async fn list(config: SdkConfig, input: Document) -> Vec<Job> {
     let client = reqwest::Client::new();
-    let res = client
-        .post(list_path(config, JOB_PATH_ROOT))
-        .json(&input)
-        .send()
-        .await;
+    let res = add_auth(
+        client.post(list_path(config, JOB_PATH_ROOT)).json(&input),
+        &get_api_token(),
+    )
+    .send()
+    .await;
 
     match res {
         Ok(response) => response.json().await.expect("could not parse Vec<Job>"),

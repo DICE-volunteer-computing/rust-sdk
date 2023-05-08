@@ -6,44 +6,54 @@ use serde::{Deserialize, Serialize};
 use super::common::Permissions;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub enum ArtifactStatus {
-    CreatedPendingUpload,
+pub enum TokenApplicationType {
+    Api,
+    HostRegistration,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum TokenStatus {
     Active,
+    Inactive,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Artifact {
+pub struct Token {
     pub created_at: u64,
+    pub hash: String,
     #[serde(rename = "_id")]
     pub id: ObjectId,
+    pub is_admin: bool,
     pub last_updated_at: u64,
+    pub name: String,
     pub permissions: Permissions,
-    pub project_id: ObjectId,
-    pub status: ArtifactStatus,
+    pub status: TokenStatus,
+    pub tags: HashMap<String, String>,
+    pub token_application_type: TokenApplicationType,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CreateApiTokenDTO {
+    pub name: String,
+    pub tags: HashMap<String, String>,
+    pub user_id: ObjectId,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CreateHostRegistrationTokenDTO {
+    pub name: String,
     pub tags: HashMap<String, String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct CreateArtifactDTO {
-    pub project_id: ObjectId,
-    pub tags: HashMap<String, String>,
+pub struct CreateTokenResponse {
+    pub token: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct CreateArtifactResponse {
-    pub id: ObjectId,
-    pub uri: String,
+pub struct UpdateTokenDTO {
+    pub status: Option<TokenStatus>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct UpdateArtifactDTO {
-    pub status: Option<ArtifactStatus>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct UpdateArtifactResponse {}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct DownloadArtifactResponse {
-    pub uri: String,
-}
+pub struct UpdateTokenResponse {}

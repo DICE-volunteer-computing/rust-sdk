@@ -5,18 +5,24 @@ use crate::{
     model::job_execution::{
         CreateJobExecutionDTO, CreateJobExecutionResponse, JobExecution, UpdateJobExecutionDTO,
     },
-    utils::url::{create_path, get_path, list_path, update_path},
+    utils::{
+        auth::{add_auth, get_api_token},
+        url::{create_path, get_path, list_path, update_path},
+    },
 };
 
 pub const JOB_EXECUTION_PATH_ROOT: &str = "job_execution";
 
 pub async fn create(config: SdkConfig, input: CreateJobExecutionDTO) -> CreateJobExecutionResponse {
     let client = reqwest::Client::new();
-    let res = client
-        .post(create_path(config, JOB_EXECUTION_PATH_ROOT))
-        .json(&input)
-        .send()
-        .await;
+    let res = add_auth(
+        client
+            .post(create_path(config, JOB_EXECUTION_PATH_ROOT))
+            .json(&input),
+        &get_api_token(),
+    )
+    .send()
+    .await;
 
     match res {
         Ok(response) => response
@@ -29,14 +35,16 @@ pub async fn create(config: SdkConfig, input: CreateJobExecutionDTO) -> CreateJo
 
 pub async fn get(config: SdkConfig, id: ObjectId) -> JobExecution {
     let client = reqwest::Client::new();
-    let res = client
-        .get(get_path(
+    let res = add_auth(
+        client.get(get_path(
             config,
             JOB_EXECUTION_PATH_ROOT,
             id.to_string().as_str(),
-        ))
-        .send()
-        .await;
+        )),
+        &get_api_token(),
+    )
+    .send()
+    .await;
 
     match res {
         Ok(response) => response.json().await.expect("could not parse JobExecution"),
@@ -46,11 +54,14 @@ pub async fn get(config: SdkConfig, id: ObjectId) -> JobExecution {
 
 pub async fn list(config: SdkConfig, input: Document) -> Vec<JobExecution> {
     let client = reqwest::Client::new();
-    let res = client
-        .post(list_path(config, JOB_EXECUTION_PATH_ROOT))
-        .json(&input)
-        .send()
-        .await;
+    let res = add_auth(
+        client
+            .post(list_path(config, JOB_EXECUTION_PATH_ROOT))
+            .json(&input),
+        &get_api_token(),
+    )
+    .send()
+    .await;
 
     match res {
         Ok(response) => response
@@ -63,15 +74,18 @@ pub async fn list(config: SdkConfig, input: Document) -> Vec<JobExecution> {
 
 pub async fn update(config: SdkConfig, id: ObjectId, input: UpdateJobExecutionDTO) {
     let client = reqwest::Client::new();
-    let res = client
-        .post(update_path(
-            config,
-            JOB_EXECUTION_PATH_ROOT,
-            id.to_string().as_str(),
-        ))
-        .json(&input)
-        .send()
-        .await;
+    let res = add_auth(
+        client
+            .post(update_path(
+                config,
+                JOB_EXECUTION_PATH_ROOT,
+                id.to_string().as_str(),
+            ))
+            .json(&input),
+        &get_api_token(),
+    )
+    .send()
+    .await;
 
     match res {
         Ok(_) => (),

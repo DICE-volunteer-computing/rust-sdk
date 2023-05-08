@@ -36,6 +36,7 @@ async fn test_crud_job_execution() {
     let create_artifact_response = artifact::create(
         TEST_SDK_CONFIG,
         CreateArtifactDTO {
+            project_id: project_id,
             tags: HashMap::new(),
         },
     )

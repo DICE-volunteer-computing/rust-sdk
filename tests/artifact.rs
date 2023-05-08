@@ -4,8 +4,11 @@ mod common;
 
 use mongodb::bson::doc;
 use rust_sdk::{
-    api::artifact,
-    model::artifact::{ArtifactStatus, CreateArtifactDTO, UpdateArtifactDTO},
+    api::{artifact, project},
+    model::{
+        artifact::{ArtifactStatus, CreateArtifactDTO, UpdateArtifactDTO},
+        project::CreateProjectDTO,
+    },
     utils::time::seconds,
 };
 
@@ -15,8 +18,21 @@ use crate::common::TEST_SDK_CONFIG;
 async fn test_crud_artifact() {
     let start_time = seconds() - 1;
 
+    // --- DEPENDENCY (PROJECT) ---
+    let project_id = project::create(
+        TEST_SDK_CONFIG,
+        CreateProjectDTO {
+            description: format!("test description"),
+            name: format!("test name 1"),
+            tags: HashMap::new(),
+        },
+    )
+    .await
+    .id;
+
     // --- CREATE ---
     let data = CreateArtifactDTO {
+        project_id: project_id,
         tags: HashMap::new(),
     };
     let create_artifact_response = artifact::create(TEST_SDK_CONFIG, data).await;

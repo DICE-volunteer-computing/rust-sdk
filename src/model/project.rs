@@ -3,6 +3,8 @@ use std::collections::HashMap;
 use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
+use super::common::Permissions;
+
 #[derive(Serialize, Debug, Deserialize)]
 pub struct Project {
     pub created_at: u64,
@@ -11,8 +13,8 @@ pub struct Project {
     pub id: ObjectId,
     pub last_updated_at: u64,
     pub name: String,
+    pub permissions: Permissions,
     pub tags: HashMap<String, String>,
-    pub user_id: ObjectId,
 }
 
 #[derive(Serialize, Debug, Deserialize)]

@@ -3,6 +3,8 @@ use std::collections::HashMap;
 use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
+use super::common::Permissions;
+
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub enum JobExecutionStatus {
     PendingHostAllocation,
@@ -23,6 +25,7 @@ pub struct JobExecution {
     pub job_id: ObjectId,
     pub last_updated_at: u64,
     pub output_artifacts: Vec<ObjectId>,
+    pub permissions: Permissions,
     pub start_time: u64,
     pub status: JobExecutionStatus,
     pub tags: HashMap<String, String>,

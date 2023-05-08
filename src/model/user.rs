@@ -1,6 +1,8 @@
 use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
+use super::common::Permissions;
+
 #[derive(Serialize, Debug, Deserialize, PartialEq)]
 pub enum ResearcherStatus {
     Active,
@@ -19,6 +21,7 @@ pub struct User {
     #[serde(rename = "_id")]
     pub id: ObjectId,
     pub last_updated_at: u64,
+    pub permissions: Permissions,
     pub researcher_status: ResearcherStatus,
 }
 
