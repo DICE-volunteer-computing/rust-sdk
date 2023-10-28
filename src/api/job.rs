@@ -1,24 +1,34 @@
+use log::debug;
 use mongodb::bson::{oid::ObjectId, Document};
 
 use crate::{
-    config::config::SdkConfig,
-    model::job::{CreateJobDTO, CreateJobResponse, Job},
-    utils::{
-        auth::{add_auth, get_api_token},
-        url::{create_path, get_path, list_path},
+    config::{
+        config::SdkConfig,
+        constants::{API_ROUTE_JOB, API_ROUTE_PROJECT, LIST_VERB},
     },
+    model::job::{CreateJobDTO, CreateJobResponse, Job},
+    utils::{api::reqwest_client, auth::add_auth, url::format_path_components},
 };
 
-pub const JOB_PATH_ROOT: &str = "job";
-
-pub async fn create(config: SdkConfig, input: CreateJobDTO) -> CreateJobResponse {
-    let client = reqwest::Client::new();
+pub async fn create(
+    config: SdkConfig,
+    project_id: ObjectId,
+    input: CreateJobDTO,
+) -> CreateJobResponse {
+    let client = reqwest_client();
     let res = add_auth(
-        client.post(create_path(config, JOB_PATH_ROOT)).json(&input),
-        &get_api_token(),
+        client
+            .post(format_path_components(
+                config.clone(),
+                vec![API_ROUTE_PROJECT, &project_id.to_string(), API_ROUTE_JOB],
+            ))
+            .json(&input),
+        &config.auth,
     )
     .send()
     .await;
+
+    debug!("{:?}", res);
 
     match res {
         Ok(response) => response
@@ -29,14 +39,24 @@ pub async fn create(config: SdkConfig, input: CreateJobDTO) -> CreateJobResponse
     }
 }
 
-pub async fn get(config: SdkConfig, id: ObjectId) -> Job {
-    let client = reqwest::Client::new();
+pub async fn get(config: SdkConfig, project_id: ObjectId, id: ObjectId) -> Job {
+    let client = reqwest_client();
     let res = add_auth(
-        client.get(get_path(config, JOB_PATH_ROOT, id.to_string().as_str())),
-        &get_api_token(),
+        client.get(format_path_components(
+            config.clone(),
+            vec![
+                API_ROUTE_PROJECT,
+                &project_id.to_string(),
+                API_ROUTE_JOB,
+                &id.to_string(),
+            ],
+        )),
+        &config.auth,
     )
     .send()
     .await;
+
+    debug!("{:?}", res);
 
     match res {
         Ok(response) => response.json().await.expect("could not parse Job"),
@@ -44,14 +64,26 @@ pub async fn get(config: SdkConfig, id: ObjectId) -> Job {
     }
 }
 
-pub async fn list(config: SdkConfig, input: Document) -> Vec<Job> {
-    let client = reqwest::Client::new();
+pub async fn list(config: SdkConfig, project_id: ObjectId, input: Document) -> Vec<Job> {
+    let client = reqwest_client();
     let res = add_auth(
-        client.post(list_path(config, JOB_PATH_ROOT)).json(&input),
-        &get_api_token(),
+        client
+            .post(format_path_components(
+                config.clone(),
+                vec![
+                    API_ROUTE_PROJECT,
+                    &project_id.to_string(),
+                    API_ROUTE_JOB,
+                    LIST_VERB,
+                ],
+            ))
+            .json(&input),
+        &config.auth,
     )
     .send()
     .await;
+
+    debug!("{:?}", res);
 
     match res {
         Ok(response) => response.json().await.expect("could not parse Vec<Job>"),

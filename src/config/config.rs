@@ -10,4 +10,5 @@ pub enum Stage {
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct SdkConfig {
     pub stage: Stage,
+    pub auth: String,
 }

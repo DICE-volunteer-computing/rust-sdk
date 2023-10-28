@@ -1,3 +1,4 @@
+use log::debug;
 use mongodb::bson::{oid::ObjectId, Document};
 
 use crate::{
@@ -7,7 +8,8 @@ use crate::{
         UpdateArtifactDTO,
     },
     utils::{
-        auth::{add_auth, get_api_token},
+        api::reqwest_client,
+        auth::add_auth,
         url::{create_path, download_path, get_path, list_path, update_path},
     },
 };
@@ -15,15 +17,17 @@ use crate::{
 pub const ARTIFACT_PATH_ROOT: &str = "artifact";
 
 pub async fn create(config: SdkConfig, input: CreateArtifactDTO) -> CreateArtifactResponse {
-    let client = reqwest::Client::new();
+    let client = reqwest_client();
     let res = add_auth(
         client
-            .post(create_path(config, ARTIFACT_PATH_ROOT))
+            .post(create_path(config.clone(), ARTIFACT_PATH_ROOT))
             .json(&input),
-        &get_api_token(),
+        &config.auth,
     )
     .send()
     .await;
+
+    debug!("{:?}", res);
 
     match res {
         Ok(response) => response
@@ -35,17 +39,19 @@ pub async fn create(config: SdkConfig, input: CreateArtifactDTO) -> CreateArtifa
 }
 
 pub async fn get(config: SdkConfig, id: ObjectId) -> Artifact {
-    let client = reqwest::Client::new();
+    let client = reqwest_client();
     let res = add_auth(
         client.get(get_path(
-            config,
+            config.clone(),
             ARTIFACT_PATH_ROOT,
             id.to_string().as_str(),
         )),
-        &get_api_token(),
+        &config.auth,
     )
     .send()
     .await;
+
+    debug!("{:?}", res);
 
     match res {
         Ok(response) => response.json().await.expect("could not parse Artifact"),
@@ -54,19 +60,21 @@ pub async fn get(config: SdkConfig, id: ObjectId) -> Artifact {
 }
 
 pub async fn update(config: SdkConfig, id: ObjectId, input: UpdateArtifactDTO) {
-    let client = reqwest::Client::new();
+    let client = reqwest_client();
     let res = add_auth(
         client
             .post(update_path(
-                config,
+                config.clone(),
                 ARTIFACT_PATH_ROOT,
                 id.to_string().as_str(),
             ))
             .json(&input),
-        &get_api_token(),
+        &config.auth,
     )
     .send()
     .await;
+
+    debug!("{:?}", res);
 
     match res {
         Ok(_) => (),
@@ -75,15 +83,17 @@ pub async fn update(config: SdkConfig, id: ObjectId, input: UpdateArtifactDTO) {
 }
 
 pub async fn list(config: SdkConfig, input: Document) -> Vec<Artifact> {
-    let client = reqwest::Client::new();
+    let client = reqwest_client();
     let res = add_auth(
         client
-            .post(list_path(config, ARTIFACT_PATH_ROOT))
+            .post(list_path(config.clone(), ARTIFACT_PATH_ROOT))
             .json(&input),
-        &get_api_token(),
+        &config.auth,
     )
     .send()
     .await;
+
+    debug!("{:?}", res);
 
     match res {
         Ok(response) => response
@@ -95,17 +105,19 @@ pub async fn list(config: SdkConfig, input: Document) -> Vec<Artifact> {
 }
 
 pub async fn download(config: SdkConfig, id: ObjectId) -> DownloadArtifactResponse {
-    let client = reqwest::Client::new();
+    let client = reqwest_client();
     let res = add_auth(
         client.get(download_path(
-            config,
+            config.clone(),
             ARTIFACT_PATH_ROOT,
             id.to_string().as_str(),
         )),
-        &get_api_token(),
+        &config.auth,
     )
     .send()
     .await;
+
+    debug!("{:?}", res);
 
     match res {
         Ok(response) => response

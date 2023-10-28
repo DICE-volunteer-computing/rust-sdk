@@ -3,7 +3,9 @@ use std::collections::HashMap;
 use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
-use super::common::Permissions;
+use super::{
+    artifact::DownloadArtifactResponse, common::Permissions, runtime::DownloadRuntimeResponse,
+};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub enum JobExecutionStatus {
@@ -51,3 +53,9 @@ pub struct UpdateJobExecutionDTO {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UpdateJobExecutionResponse {}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DownloadJobExecutionResponse {
+    pub input_artifacts: Vec<DownloadArtifactResponse>,
+    pub runtime: DownloadRuntimeResponse,
+}

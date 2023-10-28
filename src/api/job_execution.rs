@@ -1,28 +1,43 @@
+use log::debug;
 use mongodb::bson::{oid::ObjectId, Document};
 
 use crate::{
-    config::config::SdkConfig,
+    config::{
+        config::SdkConfig,
+        constants::{
+            API_ROUTE_JOB_EXECUTION, API_ROUTE_PROJECT, DOWNLOAD_VERB, LIST_VERB, UPDATE_VERB,
+        },
+    },
     model::job_execution::{
-        CreateJobExecutionDTO, CreateJobExecutionResponse, JobExecution, UpdateJobExecutionDTO,
+        CreateJobExecutionDTO, CreateJobExecutionResponse, DownloadJobExecutionResponse,
+        JobExecution, UpdateJobExecutionDTO,
     },
-    utils::{
-        auth::{add_auth, get_api_token},
-        url::{create_path, get_path, list_path, update_path},
-    },
+    utils::{api::reqwest_client, auth::add_auth, url::format_path_components},
 };
 
-pub const JOB_EXECUTION_PATH_ROOT: &str = "job_execution";
-
-pub async fn create(config: SdkConfig, input: CreateJobExecutionDTO) -> CreateJobExecutionResponse {
-    let client = reqwest::Client::new();
+pub async fn create(
+    config: SdkConfig,
+    project_id: ObjectId,
+    input: CreateJobExecutionDTO,
+) -> CreateJobExecutionResponse {
+    let client = reqwest_client();
     let res = add_auth(
         client
-            .post(create_path(config, JOB_EXECUTION_PATH_ROOT))
+            .post(format_path_components(
+                config.clone(),
+                vec![
+                    API_ROUTE_PROJECT,
+                    &project_id.to_string(),
+                    API_ROUTE_JOB_EXECUTION,
+                ],
+            ))
             .json(&input),
-        &get_api_token(),
+        &config.auth,
     )
     .send()
     .await;
+
+    debug!("{:?}", res);
 
     match res {
         Ok(response) => response
@@ -33,18 +48,24 @@ pub async fn create(config: SdkConfig, input: CreateJobExecutionDTO) -> CreateJo
     }
 }
 
-pub async fn get(config: SdkConfig, id: ObjectId) -> JobExecution {
-    let client = reqwest::Client::new();
+pub async fn get(config: SdkConfig, project_id: ObjectId, id: ObjectId) -> JobExecution {
+    let client = reqwest_client();
     let res = add_auth(
-        client.get(get_path(
-            config,
-            JOB_EXECUTION_PATH_ROOT,
-            id.to_string().as_str(),
+        client.get(format_path_components(
+            config.clone(),
+            vec![
+                API_ROUTE_PROJECT,
+                &project_id.to_string(),
+                API_ROUTE_JOB_EXECUTION,
+                &id.to_string(),
+            ],
         )),
-        &get_api_token(),
+        &config.auth,
     )
     .send()
     .await;
+
+    debug!("{:?}", res);
 
     match res {
         Ok(response) => response.json().await.expect("could not parse JobExecution"),
@@ -52,16 +73,26 @@ pub async fn get(config: SdkConfig, id: ObjectId) -> JobExecution {
     }
 }
 
-pub async fn list(config: SdkConfig, input: Document) -> Vec<JobExecution> {
-    let client = reqwest::Client::new();
+pub async fn list(config: SdkConfig, project_id: ObjectId, input: Document) -> Vec<JobExecution> {
+    let client = reqwest_client();
     let res = add_auth(
         client
-            .post(list_path(config, JOB_EXECUTION_PATH_ROOT))
+            .post(format_path_components(
+                config.clone(),
+                vec![
+                    API_ROUTE_PROJECT,
+                    &project_id.to_string(),
+                    API_ROUTE_JOB_EXECUTION,
+                    LIST_VERB,
+                ],
+            ))
             .json(&input),
-        &get_api_token(),
+        &config.auth,
     )
     .send()
     .await;
+
+    debug!("{:?}", res);
 
     match res {
         Ok(response) => response
@@ -72,23 +103,68 @@ pub async fn list(config: SdkConfig, input: Document) -> Vec<JobExecution> {
     }
 }
 
-pub async fn update(config: SdkConfig, id: ObjectId, input: UpdateJobExecutionDTO) {
-    let client = reqwest::Client::new();
+pub async fn update(
+    config: SdkConfig,
+    project_id: ObjectId,
+    id: ObjectId,
+    input: UpdateJobExecutionDTO,
+) {
+    let client = reqwest_client();
     let res = add_auth(
         client
-            .post(update_path(
-                config,
-                JOB_EXECUTION_PATH_ROOT,
-                id.to_string().as_str(),
+            .post(format_path_components(
+                config.clone(),
+                vec![
+                    API_ROUTE_PROJECT,
+                    &project_id.to_string(),
+                    API_ROUTE_JOB_EXECUTION,
+                    &id.to_string(),
+                    UPDATE_VERB,
+                ],
             ))
             .json(&input),
-        &get_api_token(),
+        &config.auth,
     )
     .send()
     .await;
 
+    debug!("{:?}", res);
+
     match res {
         Ok(_) => (),
         Err(_) => panic!("could not update job execution"),
+    }
+}
+
+pub async fn download(
+    config: SdkConfig,
+    project_id: ObjectId,
+    id: ObjectId,
+) -> DownloadJobExecutionResponse {
+    let client = reqwest_client();
+    let res = add_auth(
+        client.get(format_path_components(
+            config.clone(),
+            vec![
+                API_ROUTE_PROJECT,
+                &project_id.to_string(),
+                API_ROUTE_JOB_EXECUTION,
+                &id.to_string(),
+                DOWNLOAD_VERB,
+            ],
+        )),
+        &config.auth,
+    )
+    .send()
+    .await;
+
+    debug!("{:?}", res);
+
+    match res {
+        Ok(response) => response
+            .json()
+            .await
+            .expect("could not parse DownloadJobExecutionResponse"),
+        Err(_) => panic!("could not download job execution"),
     }
 }

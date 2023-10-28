@@ -2,7 +2,7 @@ use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use super::common::{Permissions, PlatformArchitecture, PlatformExecutionType};
+use super::common::{PlatformArchitecture, PlatformExecutionType};
 
 #[derive(Serialize, Debug, Deserialize, PartialEq)]
 pub enum HostStatus {
@@ -27,7 +27,7 @@ pub struct Host {
     #[serde(rename = "_id")]
     pub id: ObjectId,
     pub last_updated_at: u64,
-    pub permissions: Permissions,
+    pub user_id: ObjectId,
     pub status: HostStatus,
     pub tags: HashMap<String, String>,
 }

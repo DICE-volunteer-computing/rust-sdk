@@ -1,27 +1,29 @@
+use log::debug;
 use mongodb::bson::{oid::ObjectId, Document};
 
+TODO: Add new API endpoints here
+
 use crate::{
-    config::config::SdkConfig,
-    model::host::{CreateHostDTO, CreateHostResponse, Host, UpdateHostDTO},
-    utils::{
-        api::create_client,
-        auth::{add_auth, get_api_token, get_registration_token, set_api_token},
-        url::{create_path, get_path, list_path, update_path},
+    config::{
+        config::SdkConfig,
+        constants::{API_ROUTE_HOST, LIST_VERB, UPDATE_VERB},
     },
+    model::host::{CreateHostDTO, CreateHostResponse, Host, UpdateHostDTO},
+    utils::{api::reqwest_client, auth::add_auth, url::format_path_components},
 };
 
-pub const HOST_PATH_ROOTH: &str = "host";
-
 pub async fn create(config: SdkConfig, input: CreateHostDTO) -> CreateHostResponse {
-    let client = create_client();
+    let client = reqwest_client();
     let res = add_auth(
         client
-            .post(create_path(config, HOST_PATH_ROOTH))
+            .post(format_path_components(config.clone(), vec![API_ROUTE_HOST]))
             .json(&input),
-        &get_registration_token(),
+        &config.auth,
     )
     .send()
     .await;
+
+    debug!("{:?}", res);
 
     match res {
         Ok(response) => {
@@ -30,8 +32,6 @@ pub async fn create(config: SdkConfig, input: CreateHostDTO) -> CreateHostRespon
                 .await
                 .expect("could not parse CreateHostResponse");
 
-            set_api_token(&data.token);
-
             data
         }
         Err(_) => panic!("could not create host"),
@@ -39,13 +39,15 @@ pub async fn create(config: SdkConfig, input: CreateHostDTO) -> CreateHostRespon
 }
 
 pub async fn get(config: SdkConfig, id: ObjectId) -> Host {
-    let client = reqwest::Client::new();
+    let client = reqwest_client();
     let res = add_auth(
-        client.get(get_path(config, HOST_PATH_ROOTH, id.to_string().as_str())),
-        &get_api_token(),
+        client.get(format_path_components(config.clone(), vec![API_ROUTE_HOST])),
+        &config.auth,
     )
     .send()
     .await;
+
+    debug!("{:?}", res);
 
     match res {
         Ok(response) => response.json().await.expect("could not parse Host"),
@@ -53,20 +55,21 @@ pub async fn get(config: SdkConfig, id: ObjectId) -> Host {
     }
 }
 
-pub async fn update(config: SdkConfig, id: ObjectId, input: UpdateHostDTO) {
-    let client = reqwest::Client::new();
+pub async fn update(config: SdkConfig, input: UpdateHostDTO) {
+    let client = reqwest_client();
     let res = add_auth(
         client
-            .post(update_path(
-                config,
-                HOST_PATH_ROOTH,
-                id.to_string().as_str(),
+            .post(format_path_components(
+                config.clone(),
+                vec![API_ROUTE_HOST, UPDATE_VERB],
             ))
             .json(&input),
-        &get_api_token(),
+        &config.auth,
     )
     .send()
     .await;
+
+    debug!("{:?}", res);
 
     match res {
         Ok(_) => (),
@@ -75,13 +78,20 @@ pub async fn update(config: SdkConfig, id: ObjectId, input: UpdateHostDTO) {
 }
 
 pub async fn list(config: SdkConfig, input: Document) -> Vec<Host> {
-    let client = reqwest::Client::new();
+    let client = reqwest_client();
     let res = add_auth(
-        client.post(list_path(config, HOST_PATH_ROOTH)).json(&input),
-        &get_api_token(),
+        client
+            .post(format_path_components(
+                config.clone(),
+                vec![API_ROUTE_HOST, LIST_VERB],
+            ))
+            .json(&input),
+        &config.auth,
     )
     .send()
     .await;
+
+    debug!("{:?}", res);
 
     match res {
         Ok(response) => response.json().await.expect("could not parse Vec<Host>"),

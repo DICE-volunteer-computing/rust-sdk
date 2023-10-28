@@ -1,6 +1,9 @@
+pub mod api_token;
 pub mod artifact;
 pub mod host;
+pub mod host_registration_token;
 pub mod job;
 pub mod job_execution;
 pub mod project;
 pub mod runtime;
+pub mod user;

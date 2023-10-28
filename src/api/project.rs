@@ -1,26 +1,30 @@
+use log::debug;
 use mongodb::bson::{oid::ObjectId, Document};
 
 use crate::{
-    config::config::SdkConfig,
-    model::project::{CreateProjectDTO, CreateProjectResponse, Project},
-    utils::{
-        auth::{add_auth, get_api_token},
-        url::{create_path, get_path, list_path},
+    config::{
+        config::SdkConfig,
+        constants::{API_ROUTE_PROJECT, LIST_VERB},
     },
+    model::project::{CreateProjectDTO, CreateProjectResponse, Project},
+    utils::{api::reqwest_client, auth::add_auth, url::format_path_components},
 };
 
-pub const PROJECT_PATH_ROOT: &str = "project";
-
 pub async fn create(config: SdkConfig, input: CreateProjectDTO) -> CreateProjectResponse {
-    let client = reqwest::Client::new();
+    let client = reqwest_client();
     let res = add_auth(
         client
-            .post(create_path(config, PROJECT_PATH_ROOT))
+            .post(format_path_components(
+                config.clone(),
+                vec![API_ROUTE_PROJECT],
+            ))
             .json(&input),
-        &get_api_token(),
+        &config.auth,
     )
     .send()
     .await;
+
+    debug!("{:?}", res);
 
     match res {
         Ok(response) => response
@@ -32,13 +36,18 @@ pub async fn create(config: SdkConfig, input: CreateProjectDTO) -> CreateProject
 }
 
 pub async fn get(config: SdkConfig, id: ObjectId) -> Project {
-    let client = reqwest::Client::new();
+    let client = reqwest_client();
     let res = add_auth(
-        client.get(get_path(config, PROJECT_PATH_ROOT, id.to_string().as_str())),
-        &get_api_token(),
+        client.get(format_path_components(
+            config.clone(),
+            vec![API_ROUTE_PROJECT, &id.to_string()],
+        )),
+        &config.auth,
     )
     .send()
     .await;
+
+    debug!("{:?}", res);
 
     match res {
         Ok(response) => response.json().await.expect("could not parse Project"),
@@ -47,15 +56,20 @@ pub async fn get(config: SdkConfig, id: ObjectId) -> Project {
 }
 
 pub async fn list(config: SdkConfig, input: Document) -> Vec<Project> {
-    let client = reqwest::Client::new();
+    let client = reqwest_client();
     let res = add_auth(
         client
-            .post(list_path(config, PROJECT_PATH_ROOT))
+            .post(format_path_components(
+                config.clone(),
+                vec![API_ROUTE_PROJECT, LIST_VERB],
+            ))
             .json(&input),
-        &get_api_token(),
+        &config.auth,
     )
     .send()
     .await;
+
+    debug!("{:?}", res);
 
     match res {
         Ok(response) => response.json().await.expect("could not parse Vec<Project>"),

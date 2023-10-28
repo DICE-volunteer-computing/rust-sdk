@@ -21,6 +21,7 @@ pub struct Project {
 pub struct CreateProjectDTO {
     pub description: String,
     pub name: String,
+    pub permissions: Permissions,
     pub tags: HashMap<String, String>,
 }
 
